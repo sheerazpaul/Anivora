@@ -34,7 +34,7 @@ export const animeApi = {
   getAnimeReviews: (id, page = 1) => api.get(`/anime/${id}/reviews`, { params: { page } }),
 
   getAnimeByGenre: (genreId, page = 1) =>
-    api.get('/anime', { params: { genres: genreId, page } }),
+    api.get('/anime', { params: { genres: genreId, page, order_by: 'members', sort: 'desc', limit: 25 } }),
 
   getGenres: () => api.get('/genres/anime'),
 

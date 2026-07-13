@@ -3,10 +3,9 @@ import { motion } from 'framer-motion';
 import { useFavorites } from '../context/FavoritesContext';
 import { useWatchlist } from '../context/WatchlistContext';
 import { useTheme } from '../context/ThemeContext';
-import { Heart, Plus, Play, Star } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Heart, Plus, Star, Check } from 'lucide-react';
 
-export default function AnimeCard({ anime, index = 0, horizontal = false }) {
+export default function AnimeCard({ anime, index = 0, horizontal = false, rank }) {
   const { isDark } = useTheme();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
@@ -17,28 +16,18 @@ export default function AnimeCard({ anime, index = 0, horizontal = false }) {
   const toggleFav = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isFav) {
-      removeFavorite(anime.mal_id);
-      toast('Removed from favorites');
-    } else {
-      addFavorite(anime);
-      toast('Added to favorites');
-    }
+    if (isFav) { removeFavorite(anime.mal_id); } else { addFavorite(anime); }
   };
 
   const toggleWl = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isWl) {
-      removeFromWatchlist(anime.mal_id);
-      toast('Removed from watchlist');
-    } else {
-      addToWatchlist(anime);
-      toast('Added to watchlist');
-    }
+    if (isWl) { removeFromWatchlist(anime.mal_id); } else { addToWatchlist(anime); }
   };
 
   const img = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url;
+  const isAiring = anime.status === 'Currently Airing';
+  const isFinished = anime.status === 'Finished Airing';
 
   if (horizontal) {
     return (
@@ -46,43 +35,40 @@ export default function AnimeCard({ anime, index = 0, horizontal = false }) {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: index * 0.06 }}
-        whileHover={{ y: -3, scale: 1.01 }}
         className="flex-none group"
       >
         <Link
           to={`/anime/${anime.mal_id}`}
-          className={`block w-[340px] md:w-[420px] h-[200px] relative rounded-2xl overflow-hidden border transition-all duration-300
+          className={`block w-[340px] md:w-[420px] h-[200px] relative rounded-2xl overflow-hidden border transition-all duration-500
             ${isDark ? 'border-slate-700/50' : 'border-indigo-100/60'}
-            ${isDark ? 'bg-slate-800' : 'bg-white'}
-            shadow-sm hover:shadow-xl`}
+            shadow-sm hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30`}
         >
           <img
             src={img}
             alt={anime.title}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-6 flex flex-col justify-end">
-            <div>
-              <h3 className="text-lg font-bold text-white mb-0.5 line-clamp-1">
-                {anime.title}
-              </h3>
-              <p className="text-xs text-white/60 line-clamp-1 mb-3">
-                {anime.synopsis?.slice(0, 80) || 'Explore this anime'}
-              </p>
-              <div className="flex items-center gap-2">
-                {anime.genres?.slice(0, 2).map((g) => (
-                  <span key={g.mal_id} className="px-3 py-0.5 rounded-full text-[10px] font-medium bg-white/15 text-white/90 backdrop-blur-sm border border-white/10">
-                    {g.name}
-                  </span>
-                ))}
-                {anime.score && (
-                  <span className="ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 text-[10px] font-bold">
-                    <Star size={10} fill="currentColor" />
-                    {anime.score}
-                  </span>
-                )}
-              </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-5 flex flex-col justify-end">
+            <div className="flex items-center gap-2 mb-2">
+              {rank && (
+                <span className="px-2 py-0.5 rounded-full bg-primary/80 text-white text-[10px] font-bold">#{rank}</span>
+              )}
+              {isAiring && <span className="px-2 py-0.5 rounded-full bg-green-500/80 text-white text-[10px] font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />Airing</span>}
+            </div>
+            <h3 className="text-lg font-bold text-white mb-0.5 line-clamp-1">{anime.title}</h3>
+            <p className="text-xs text-white/60 line-clamp-1 mb-2">{anime.synopsis?.slice(0, 80) || 'Explore this anime'}</p>
+            <div className="flex items-center gap-2">
+              {anime.genres?.slice(0, 2).map((g) => (
+                <span key={g.mal_id} className="px-3 py-0.5 rounded-full text-[10px] font-medium bg-white/15 text-white/90 backdrop-blur-sm border border-white/10">
+                  {g.name}
+                </span>
+              ))}
+              {anime.score && (
+                <span className="ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 text-[10px] font-bold">
+                  <Star size={10} fill="currentColor" />{anime.score}
+                </span>
+              )}
             </div>
           </div>
         </Link>
@@ -95,63 +81,71 @@ export default function AnimeCard({ anime, index = 0, horizontal = false }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.05, ease: [0.23, 1, 0.32, 1] }}
-      whileHover={{ y: -6 }}
       className="flex-none w-44 md:w-52 group"
     >
       <Link to={`/anime/${anime.mal_id}`}>
-        <div className={`relative aspect-[2/3] rounded-2xl overflow-hidden mb-2.5 border transition-all duration-300
-          ${isDark
-            ? 'bg-slate-800 border-slate-700/50'
-            : 'bg-white border-indigo-100/60'
-          } shadow-sm group-hover:shadow-xl`}>
+        <div className={`relative aspect-[2/3] rounded-2xl overflow-hidden mb-2.5 border transition-all duration-500
+          ${isDark ? 'bg-slate-800 border-slate-700/50' : 'bg-white border-indigo-100/60'}
+          shadow-sm group-hover:shadow-xl group-hover:shadow-primary/10 group-hover:border-primary/30`}>
           <img
             src={img}
             alt={anime.title}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
 
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-            <div className="space-y-1.5">
-              <Link
-                to={`/anime/${anime.mal_id}`}
-                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm hover:bg-white/30 transition-all"
+          <div className={`absolute inset-0 transition-all duration-300 ${
+            isDark
+              ? 'bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100'
+              : 'bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100'
+          } flex flex-col justify-end p-3`}>
+            <div className="space-y-1.5 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+              <button
+                onClick={toggleWl}
+                className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-full text-xs font-medium transition-all backdrop-blur-sm ${
+                  isWl
+                    ? 'bg-primary text-white'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
               >
-                <Play size={12} />
-                View Details
-              </Link>
-              <div className="flex gap-1.5">
-                <button
-                  onClick={toggleFav}
-                  className={`flex-1 py-1.5 rounded-full text-xs font-medium transition-all flex items-center justify-center gap-1 ${
-                    isFav ? 'bg-primary text-white' : 'bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm'
-                  }`}
-                >
-                  <Heart size={12} fill={isFav ? 'currentColor' : 'none'} />
-                </button>
-                <button
-                  onClick={toggleWl}
-                  className={`flex-1 py-1.5 rounded-full text-xs font-medium transition-all flex items-center justify-center gap-1 ${
-                    isWl ? 'bg-secondary text-white' : 'bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm'
-                  }`}
-                >
-                  <Plus size={12} />
-                </button>
-              </div>
+                {isWl ? <Check size={12} /> : <Plus size={12} />}
+                {isWl ? 'Added' : 'Watchlist'}
+              </button>
+              <button
+                onClick={toggleFav}
+                className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-full text-xs font-medium transition-all backdrop-blur-sm ${
+                  isFav
+                    ? 'bg-red-500/80 text-white'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                <Heart size={12} fill={isFav ? 'currentColor' : 'none'} />
+                {isFav ? 'Favorited' : 'Favorite'}
+              </button>
             </div>
           </div>
 
+          {rank && (
+            <div className="absolute top-2 left-2">
+              <div className="w-7 h-7 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center shadow-md shadow-primary/30">
+                {rank}
+              </div>
+            </div>
+          )}
+
           {anime.score && (
-            <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1 border border-white/10">
+            <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1 border border-white/10 ${
+              anime.score >= 8 ? 'bg-yellow-500/30' : anime.score >= 6 ? 'bg-green-500/30' : 'bg-slate-500/30'
+            }`}>
               <Star size={10} fill="#fbbf24" stroke="#fbbf24" />
               {anime.score}
             </div>
           )}
 
-          {anime.type && (
-            <div className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium backdrop-blur-sm border
-              ${isDark ? 'bg-white/15 text-white/90 border-white/10' : 'bg-black/30 text-white border-white/20'}`}>
-              {anime.type}
+          {isAiring && (
+            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-green-500/80 backdrop-blur-sm text-white text-[9px] font-medium flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              Airing
             </div>
           )}
         </div>
@@ -159,12 +153,12 @@ export default function AnimeCard({ anime, index = 0, horizontal = false }) {
         <h3 className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>
           {anime.title}
         </h3>
-        <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          {anime.status === 'Currently Airing' ? '● Airing' : 
-           anime.status === 'Finished Airing' ? '✓ Completed' : 
-           anime.status || 'Unknown'}
-          {anime.episodes ? ` · ${anime.episodes} eps` : ''}
-        </p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            {isAiring ? 'Airing' : isFinished ? 'Completed' : anime.status || 'Unknown'}
+            {anime.episodes ? ` · ${anime.episodes} eps` : ''}
+          </p>
+        </div>
       </Link>
     </motion.div>
   );

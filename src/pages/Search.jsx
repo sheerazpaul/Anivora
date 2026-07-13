@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { animeApi } from '../api/animeApi';
 import SearchBar from '../components/SearchBar';
 import AnimeCard from '../components/AnimeCard';
 import Pagination from '../components/Pagination';
 import { SkeletonCard, Spinner } from '../components/Skeletons';
-import { Filter } from 'lucide-react';
+import { Filter, Search, ArrowRight } from 'lucide-react';
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -36,12 +37,12 @@ export default function SearchPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <aside className="hidden lg:block">
-            <div className="bg-white rounded-2xl p-6 border border-indigo-100/60 sticky top-24">
+            <div className="glass-card rounded-2xl p-6 sticky top-24">
               <div className="flex items-center gap-2 mb-4">
                 <Filter size={16} className="text-primary" />
                 <h3 className="font-semibold text-slate-700">Filters</h3>
               </div>
-              
+
               <div className="space-y-5">
                 <div>
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">
@@ -63,9 +64,7 @@ export default function SearchPage() {
                     {['TV', 'Movie', 'OVA', 'Special'].map((fmt) => (
                       <label key={fmt} className="flex items-center gap-3 cursor-pointer group">
                         <input type="checkbox" className="w-4 h-4 rounded border-indigo-200 text-primary focus:ring-primary/30" />
-                        <span className="text-sm text-slate-500 group-hover:text-slate-700 transition-colors">
-                          {fmt}
-                        </span>
+                        <span className="text-sm text-slate-500 group-hover:text-slate-700 transition-colors">{fmt}</span>
                       </label>
                     ))}
                   </div>
@@ -102,21 +101,33 @@ export default function SearchPage() {
                 <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
               </>
             ) : query ? (
-              <div className="text-center py-16">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16">
                 <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
                   <Filter size={28} className="text-slate-300" />
                 </div>
                 <p className="text-xl font-semibold text-slate-700 mb-1">No results found</p>
                 <p className="text-slate-400">Try different keywords</p>
-              </div>
+              </motion.div>
             ) : (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" height="28" viewBox="0 -960 960 960" width="28" fill="#94a3b8"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-primary/5 flex items-center justify-center mx-auto mb-4">
+                  <Search size={28} className="text-primary" />
                 </div>
                 <p className="text-xl font-semibold text-slate-700 mb-1">Start searching</p>
-                <p className="text-slate-400">Find your next favorite anime</p>
-              </div>
+                <p className="text-slate-400 mb-6">Find your next favorite anime</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {['One Piece', 'Jujutsu Kaisen', 'Attack on Titan', 'Demon Slayer'].map((s) => (
+                    <a
+                      key={s}
+                      href={`/search?q=${encodeURIComponent(s)}`}
+                      className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium bg-white text-slate-600 border border-indigo-100/60 hover:border-primary/30 hover:text-primary hover:shadow-sm transition-all"
+                    >
+                      {s}
+                      <ArrowRight size={12} />
+                    </a>
+                  ))}
+                </div>
+              </motion.div>
             )}
           </section>
         </div>

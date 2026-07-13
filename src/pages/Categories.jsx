@@ -6,17 +6,14 @@ import { animeApi } from '../api/animeApi';
 import AnimeCard from '../components/AnimeCard';
 import Pagination from '../components/Pagination';
 import { SkeletonCard, Spinner } from '../components/Skeletons';
-import { LayoutGrid, Crown, Radio, Clock, Sparkles, Flame, Film, Tv, Monitor } from 'lucide-react';
+import { LayoutGrid, Crown, Radio, Clock, Sparkles, Flame } from 'lucide-react';
 
 const categories = [
-  { id: 'trending', label: 'Trending', icon: Flame, color: 'text-rose-500', bg: 'bg-rose-50' },
-  { id: 'top', label: 'Top Rated', icon: Crown, color: 'text-amber-500', bg: 'bg-amber-50' },
-  { id: 'airing', label: 'Airing', icon: Radio, color: 'text-green-500', bg: 'bg-green-50' },
-  { id: 'upcoming', label: 'Upcoming', icon: Clock, color: 'text-cyan-500', bg: 'bg-cyan-50' },
-  { id: 'tv', label: 'TV Series', icon: Tv, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-  { id: 'movie', label: 'Movies', icon: Film, color: 'text-violet-500', bg: 'bg-violet-50' },
-  { id: 'ova', label: 'OVAs', icon: Monitor, color: 'text-orange-500', bg: 'bg-orange-50' },
-  { id: 'genres', label: 'By Genre', icon: Sparkles, color: 'text-pink-500', bg: 'bg-pink-50' },
+  { id: 'trending', label: 'Trending', icon: Flame, bg: 'from-rose-500/10 to-orange-500/10', color: 'text-rose-500', border: 'border-rose-200/50' },
+  { id: 'top', label: 'Top Rated', icon: Crown, bg: 'from-amber-500/10 to-yellow-500/10', color: 'text-amber-500', border: 'border-amber-200/50' },
+  { id: 'airing', label: 'Airing', icon: Radio, bg: 'from-green-500/10 to-emerald-500/10', color: 'text-green-500', border: 'border-green-200/50' },
+  { id: 'upcoming', label: 'Upcoming', icon: Clock, bg: 'from-cyan-500/10 to-sky-500/10', color: 'text-cyan-500', border: 'border-cyan-200/50' },
+  { id: 'genres', label: 'By Genre', icon: Sparkles, bg: 'from-pink-500/10 to-rose-500/10', color: 'text-pink-500', border: 'border-pink-200/50' },
 ];
 
 const categoryFilters = {
@@ -24,9 +21,6 @@ const categoryFilters = {
   top: { type: 'top', filter: '' },
   airing: { type: 'top', filter: 'airing' },
   upcoming: { type: 'season', season: 'upcoming' },
-  tv: { type: 'top', filter: 'tv' },
-  movie: { type: 'top', filter: 'movie' },
-  ova: { type: 'top', filter: 'ova' },
 };
 
 export default function Categories() {
@@ -67,15 +61,21 @@ export default function Categories() {
   return (
     <div className="min-h-screen pt-20">
       <main className="pb-16 px-6 max-w-screen-2xl mx-auto">
-        {/* Category Pills */}
-        <section className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`p-2.5 rounded-xl ${activeCat.bg} ${activeCat.color}`}>
-              <LayoutGrid size={22} />
+        {/* Header */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-4 mb-4">
+            <div className={`p-3 rounded-2xl bg-gradient-to-br ${activeCat.bg} shadow-sm`}>
+              <LayoutGrid size={24} className={activeCat.color} />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800">Browse</h1>
-              <p className="text-slate-500">Explore anime by category</p>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800">
+                <span className="text-gradient">Browse</span> Anime
+              </h1>
+              <p className="text-slate-400">Explore anime by category</p>
             </div>
           </div>
 
@@ -91,8 +91,8 @@ export default function Categories() {
                   onClick={() => setCategory(cat.id)}
                   className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all ${
                     isActive
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-white text-slate-600 border border-indigo-100/60 hover:border-primary/30 hover:text-primary'
+                      ? 'bg-primary text-white shadow-md shadow-primary/20'
+                      : 'bg-white text-slate-600 border border-indigo-100/60 hover:border-primary/30 hover:text-primary hover:shadow-sm'
                   }`}
                 >
                   <CatIcon size={16} />
@@ -101,11 +101,15 @@ export default function Categories() {
               );
             })}
           </div>
-        </section>
+        </motion.section>
 
         {/* Active Category Header */}
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-indigo-100/60">
-          <div className={`p-2 rounded-lg ${activeCat.bg}`}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 mb-6 pb-4 border-b border-indigo-100/60"
+        >
+          <div className={`p-2 rounded-lg bg-gradient-to-br ${activeCat.bg}`}>
             <Icon size={18} className={activeCat.color} />
           </div>
           <div>
@@ -114,7 +118,7 @@ export default function Categories() {
               {isGenres ? `${genresData?.length || 0} genres to explore` : `Page ${page} of ${totalPages}`}
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Content */}
         {isGenres ? (
@@ -128,11 +132,11 @@ export default function Categories() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  whileHover={{ y: -3 }}
+                  whileHover={{ y: -4 }}
                 >
                   <Link
                     to={`/genre/${genre.mal_id}?name=${encodeURIComponent(genre.name)}`}
-                    className="block p-5 rounded-2xl text-center transition-all bg-white border border-indigo-100/60 hover:border-primary/30 hover:shadow-md hover:bg-primary-container/20"
+                    className="block p-5 rounded-2xl text-center transition-all glass-card hover:shadow-lg hover:border-primary/30 hover:bg-primary-container/20"
                   >
                     <p className="font-semibold text-slate-700 text-sm">{genre.name}</p>
                     <p className="text-[11px] text-slate-400 mt-1">{genre.count} titles</p>
@@ -149,7 +153,7 @@ export default function Categories() {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {data?.data?.data?.map((anime, i) => (
-                <AnimeCard key={anime.mal_id} anime={anime} index={i} />
+                <AnimeCard key={anime.mal_id} anime={anime} index={i} rank={page > 1 ? (page - 1) * 25 + i + 1 : i + 1} />
               ))}
             </div>
             <Pagination
