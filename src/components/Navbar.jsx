@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Heart, Search, Moon, Sun, ListPlus, Flame, Crown, Radio, Clock, Tv, Film, Monitor, Sparkles, LayoutGrid } from 'lucide-react';
+import { Menu, X, Heart, Search, Moon, Sun, ListPlus, ChevronDown, LayoutGrid, Flame, Crown, Radio, Clock, Tv, Film, Monitor, Sparkles } from 'lucide-react';
 import { useFavorites } from '../context/FavoritesContext';
 import { useWatchlist } from '../context/WatchlistContext';
 import { useTheme } from '../context/ThemeContext';
@@ -22,15 +22,34 @@ const browseItems = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [browseOpen, setBrowseOpen] = useState(false);
   const { isDark, toggleTheme } = useTheme();
   const { favorites } = useFavorites();
   const { watchlist } = useWatchlist();
+  const browseRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (browseRef.current && !browseRef.current.contains(e.target)) {
+        setBrowseOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleBrowseClick = (item) => {
+    setBrowseOpen(false);
+    setIsOpen(false);
+    navigate(item.to);
+  };
 
   return (
     <motion.nav
@@ -51,12 +70,12 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-1 overflow-x-auto hide-scrollbar">
+        <div className="hidden md:flex items-center gap-1">
           <NavLink
             to="/"
             end
             className={({ isActive }) =>
-              `rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap transition-all ${
+              `rounded-full px-4 py-2 text-sm font-medium transition-all ${
                 isActive
                   ? 'bg-primary text-white shadow-sm'
                   : isDark
@@ -67,30 +86,54 @@ export default function Navbar() {
           >
             Home
           </NavLink>
-          {browseItems.map((item) => {
-            const ItemIcon = item.icon;
-            return (
-              <NavLink
-                key={item.id}
-                to={item.to}
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap transition-all ${
-                    isActive
-                      ? 'bg-primary text-white shadow-sm'
-                      : isDark
-                        ? 'text-slate-400 hover:text-white hover:bg-white/10'
-                        : 'text-slate-500 hover:text-slate-800 hover:bg-indigo-50'
-                  }`
-                }
-              >
-                <ItemIcon size={14} />
-                {item.label}
-              </NavLink>
-            );
-          })}
+
+          <div ref={browseRef} className="relative">
+            <button
+              onClick={() => setBrowseOpen(!browseOpen)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                browseOpen
+                  ? 'bg-primary text-white shadow-sm'
+                  : isDark
+                    ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-indigo-50'
+              }`}
+            >
+              <LayoutGrid size={15} />
+              Browse
+              <ChevronDown size={14} className={`transition-transform ${browseOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {browseOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                  className="absolute top-full left-0 mt-2 w-56 rounded-2xl bg-white border border-indigo-100/60 shadow-xl shadow-indigo-500/5 overflow-hidden z-30"
+                >
+                  <div className="p-1.5">
+                    {browseItems.map((item) => {
+                      const ItemIcon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => handleBrowseClick(item)}
+                          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-indigo-50 hover:text-slate-800 transition-all text-left"
+                        >
+                          <ItemIcon size={16} className="text-slate-400" />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1">
           <NavLink
             to="/search"
             className={`rounded-full p-2 transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-800 hover:bg-indigo-50'}`}
@@ -140,10 +183,10 @@ export default function Navbar() {
 
           <Link
             to="/watchlist"
-            className="hidden md:inline-flex btn-primary gap-2 text-sm py-2 px-4"
+            className="hidden md:inline-flex btn-primary gap-2 text-sm py-2 px-5"
           >
             <ListPlus size={16} />
-            Watchlist
+            My Watchlist
           </Link>
         </div>
       </div>
@@ -157,7 +200,7 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className={`md:hidden rounded-b-2xl overflow-hidden ${isDark ? 'bg-slate-900/95' : 'bg-white/95'}`}
           >
-            <div className="px-4 pb-4 pt-2 space-y-1 max-h-[70vh] overflow-y-auto">
+            <div className="px-4 pb-4 pt-2 space-y-1">
               <NavLink
                 to="/"
                 end
@@ -174,26 +217,24 @@ export default function Navbar() {
               >
                 Home
               </NavLink>
+
+              <div className={`pt-2 pb-1 px-1 text-[11px] font-semibold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                Browse
+              </div>
+
               {browseItems.map((item) => {
                 const ItemIcon = item.icon;
                 return (
-                  <NavLink
+                  <button
                     key={item.id}
-                    to={item.to}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
-                        isActive
-                          ? 'bg-primary text-white'
-                          : isDark
-                            ? 'text-slate-400 hover:text-white hover:bg-white/10'
-                            : 'text-slate-500 hover:text-slate-800 hover:bg-indigo-50'
-                      }`
-                    }
+                    onClick={() => handleBrowseClick(item)}
+                    className={`flex items-center gap-3 w-full rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
+                      isDark ? 'text-slate-400 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-800 hover:bg-indigo-50'
+                    }`}
                   >
                     <ItemIcon size={15} />
                     {item.label}
-                  </NavLink>
+                  </button>
                 );
               })}
             </div>
